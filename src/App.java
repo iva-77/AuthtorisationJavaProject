@@ -87,6 +87,10 @@ class PartyB {
 
 public class App {
     public static void main(String[] args) throws Exception {
+        testCorrectAttempt();
+    }
+}
+public static void testCorrectAttempt() throws Exception {
         // Генерация ключей для стороны A
         KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
         keyGen.initialize(2048);
@@ -108,7 +112,6 @@ public class App {
             System.out.println("Ошибка аутентификации.");
         }
     }
-}
 
 public static void testImpostorAttempt() throws Exception {
     System.out.println("== Тест: Попытка мошенника выдать себя за PartyA ==");
