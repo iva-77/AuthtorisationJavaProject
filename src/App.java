@@ -3,8 +3,12 @@ import java.util.Base64;
 import javax.crypto.Cipher;
 import java.nio.charset.StandardCharsets;
 import java.security.spec.*;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
 
-class PartyA {
+
+static class PartyA {
     private PrivateKey privateKey;
     private PublicKey publicKey;
 
@@ -43,7 +47,7 @@ class PartyA {
     }
 }
 
-class PartyB {
+static class PartyB {
     private String identity = "PartyB";
     private SecureRandom random = new SecureRandom();
     private PublicKey pubKeyA;
@@ -84,12 +88,72 @@ class PartyB {
     }
 }
 
+private static void createAndShowGUI() {
+    JFrame frame = new JFrame("Тест Аутентификации");
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    frame.setSize(500, 400);
+    frame.setLayout(new BorderLayout());
 
-void main() {
-    testCorrectAttempt();
+    // Панель с кнопками
+    JPanel buttonPanel = new JPanel();
+    JButton testCorrectBtn = new JButton("✅ Тест: Настоящая PartyA");
+    JButton testImpostorBtn = new JButton("❌ Тест: Мошенник");
+
+    buttonPanel.add(testCorrectBtn);
+    buttonPanel.add(testImpostorBtn);
+
+    // Слайдер (на будущее, например, для размера ключа)
+    JSlider keySizeSlider = new JSlider(512, 4096, 2048);
+    keySizeSlider.setMajorTickSpacing(1024);
+    keySizeSlider.setMinorTickSpacing(256);
+    keySizeSlider.setPaintTicks(true);
+    keySizeSlider.setPaintLabels(true);
+    keySizeSlider.setBorder(BorderFactory.createTitledBorder("Размер ключа RSA"));
+
+    // Лог вывода
+    JTextArea logArea = new JTextArea();
+    logArea.setEditable(false);
+    JScrollPane scrollPane = new JScrollPane(logArea);
+
+    // Обработка нажатий
+    testCorrectBtn.addActionListener((ActionEvent e) -> {
+        logArea.append("▶ Запуск теста настоящей PartyA...\n");
+        try {
+            String result = testCorrectAttempt();
+            logArea.append(result + "\n\n");
+        } catch (Exception ex) {
+            logArea.append("Ошибка: " + ex.getMessage() + "\n\n");
+        }
+    });
+
+    testImpostorBtn.addActionListener((ActionEvent e) -> {
+        logArea.append("▶ Запуск теста мошенника...\n");
+        try {
+            String result = testImpostorAttempt();
+            logArea.append(result + "\n\n");
+        } catch (Exception ex) {
+            logArea.append("Ошибка: " + ex.getMessage() + "\n\n");
+        }
+    });
+
+    // Добавление компонентов в окно
+    frame.add(buttonPanel, BorderLayout.NORTH);
+    frame.add(keySizeSlider, BorderLayout.SOUTH);
+    frame.add(scrollPane, BorderLayout.CENTER);
+
+    frame.setVisible(true);
 }
 
-public static void testCorrectAttempt() throws Exception {
+void main() {
+    try {
+        SwingUtilities.invokeLater(() -> createAndShowGUI());
+    } catch (Exception e)
+    {
+
+    }
+}
+
+public static String testCorrectAttempt() throws Exception {
         // Генерация ключей для стороны A
         KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
         keyGen.initialize(2048);
@@ -107,12 +171,14 @@ public static void testCorrectAttempt() throws Exception {
         // B проверяет
         if (b.verifyResponse(response)) {
             System.out.println("A успешно аутентифицирована.");
+            return ("A успешно аутентифицирована.");
         } else {
             System.out.println("Ошибка аутентификации.");
+            return ("Ошибка аутентификации.");
         }
     }
 
-public static void testImpostorAttempt() throws Exception {
+public static String testImpostorAttempt() throws Exception {
     System.out.println("== Тест: Попытка мошенника выдать себя за PartyA ==");
 
     // Настоящая PartyA
@@ -138,11 +204,14 @@ public static void testImpostorAttempt() throws Exception {
         // Проверка B — ожидаем, что она не пройдет
         if (b.verifyResponse(response)) {
             System.out.println("❌ Мошенник успешно прошёл проверку! (ОШИБКА!)");
+            return ("❌ Мошенник успешно прошёл проверку! (ОШИБКА!)");
         } else {
             System.out.println("✅ Мошенник не прошёл проверку. Всё работает корректно.");
+            return ("✅ Мошенник не прошёл проверку. Всё работает корректно.");
         }
     } catch (Exception e) {
         System.out.println("✅ Мошенник не смог расшифровать challenge: " + e.getMessage());
+        return ("✅ Мошенник не смог расшифровать challenge: " + e.getMessage());
     }
 }
 
