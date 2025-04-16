@@ -109,3 +109,38 @@ public class App {
         }
     }
 }
+
+public static void testImpostorAttempt() throws Exception {
+    System.out.println("== Тест: Попытка мошенника выдать себя за PartyA ==");
+
+    // Настоящая PartyA
+    KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+    keyGen.initialize(2048);
+    KeyPair realKeyPair = keyGen.generateKeyPair();
+    PartyA realA = new PartyA(realKeyPair);
+
+    // PartyB знает только публичный ключ реального A
+    PartyB b = new PartyB(realA.getPublicKey());
+
+    // PartyB отправляет challenge
+    PartyB.Message challenge = b.sendChallenge();
+
+    // Мошенник пытается ответить
+    KeyPair fakeKeyPair = keyGen.generateKeyPair(); // совершенно другой ключ
+    PartyA fakeA = new PartyA(fakeKeyPair);         // притворяется PartyA
+
+    try {
+        // fakeA не сможет расшифровать challenge, т.к. у него другой приватный ключ
+        String response = fakeA.respond(challenge.hashR, challenge.identity, challenge.encryptedPayload);
+
+        // Проверка B — ожидаем, что она не пройдет
+        if (b.verifyResponse(response)) {
+            System.out.println("❌ Мошенник успешно прошёл проверку! (ОШИБКА!)");
+        } else {
+            System.out.println("✅ Мошенник не прошёл проверку. Всё работает корректно.");
+        }
+    } catch (Exception e) {
+        System.out.println("✅ Мошенник не смог расшифровать challenge: " + e.getMessage());
+    }
+}
+
