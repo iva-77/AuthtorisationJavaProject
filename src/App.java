@@ -85,11 +85,10 @@ class PartyB {
 }
 
 
-public class App {
-    public static void main(String[] args) throws Exception {
-        testCorrectAttempt();
-    }
+void main() {
+    testCorrectAttempt();
 }
+
 public static void testCorrectAttempt() throws Exception {
         // Генерация ключей для стороны A
         KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
